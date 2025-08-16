@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Principal from "./Component/principal";
+import Principal from "./Component/Principal";
 import Rate from "./Component/Rate";
 import StartDate from "./Component/Startdate";
 import EndDate from "./Component/Endate";
