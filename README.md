@@ -20,7 +20,3 @@
 - Node.js installed
 - npm installed
 
-### Installation
-1. Clone the repository:
-```bash
-git clone <https://github.com/mekadeeraj-k/Vaddi-calculator.git>
