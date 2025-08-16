@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import Principal from "./Component/Principal";
 import Rate from "./Component/Rate";
-import StartDate from "./Component/Startdate";
-import EndDate from "./Component/Endate";
-import "./App.css";
+import Startdate from "./Component/Startdate";
+import Enddate from "./Component/Endate";
+import './App.css'
 
 function App() {
   const [principal, setPrincipal] = useState("");
@@ -16,7 +16,6 @@ function App() {
   const [calcType, setCalcType] = useState("simple");
   const [dayCount, setDayCount] = useState("actual365");
 
-  // Ref to scroll the result into view
   const resultRef = useRef(null);
 
   function calculateInterest() {
@@ -24,18 +23,39 @@ function App() {
     const r = Number(rate);
 
     if (!p || p <= 0 || !r || r <= 0 || !startDate || !endDate) {
-      setError(
-        "⚠ Please enter valid Principal, Rate, Start Date, and End Date."
-      );
+      setError("⚠ Please enter valid Principal, Rate, Start Date, and End Date.");
       setCalculatedInterest(null);
       return;
     }
 
-    const [startDay, startMonth, startYear] = startDate.split("-");
-    const start = new Date(startYear, startMonth - 1, startDay);
+    // Parse Start Date DD-MM-YYYY
+    const startParts = startDate.split("-");
+    if (startParts.length !== 3) {
+      setError("⚠ Start Date must be in DD-MM-YYYY format");
+      return;
+    }
+    const start = new Date(
+      parseInt(startParts[2]),      // year
+      parseInt(startParts[1]) - 1,  // month (0-indexed)
+      parseInt(startParts[0])       // day
+    );
 
-    const [endDay, endMonth, endYear] = endDate.split("-");
-    const end = new Date(endYear, endMonth - 1, endDay);
+    // Parse End Date DD-MM-YYYY
+    const endParts = endDate.split("-");
+    if (endParts.length !== 3) {
+      setError("⚠ End Date must be in DD-MM-YYYY format");
+      return;
+    }
+    const end = new Date(
+      parseInt(endParts[2]),
+      parseInt(endParts[1]) - 1,
+      parseInt(endParts[0])
+    );
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      setError("⚠ Invalid date entered");
+      return;
+    }
 
     if (end <= start) {
       setError("⚠ End Date must be after Start Date.");
@@ -47,9 +67,7 @@ function App() {
 
     if (rateType === "per100perMonth") {
       const monthlyInterest = (p / 100) * r;
-      const totalMonths =
-        (end.getFullYear() - start.getFullYear()) * 12 +
-        (end.getMonth() - start.getMonth());
+      const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
       interest = monthlyInterest * totalMonths;
     } else {
       let rateToUse = r;
@@ -60,8 +78,7 @@ function App() {
       } else if (dayCount === "actualActual") {
         const yearDays =
           ((start.getFullYear() % 4 === 0 ? 366 : 365) +
-            (end.getFullYear() % 4 === 0 ? 366 : 365)) /
-          2;
+            (end.getFullYear() % 4 === 0 ? 366 : 365)) / 2;
         timeInYears2 = diffInDays / yearDays;
       }
 
@@ -69,8 +86,7 @@ function App() {
         interest = (p * rateToUse * timeInYears2) / 100;
       } else {
         const n = 1;
-        interest =
-          p * Math.pow(1 + rateToUse / (n * 100), n * timeInYears2) - p;
+        interest = p * Math.pow(1 + rateToUse / (n * 100), n * timeInYears2) - p;
       }
     }
 
@@ -96,6 +112,7 @@ function App() {
       duration: `${years} years, ${months} months, ${days} days`,
     });
 
+    // Scroll result into view
     setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
@@ -104,14 +121,12 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-200 flex items-center justify-center sm:p-6">
       <div className="p-6 rounded-lg shadow-lg w-full max-w-md bg-white bg-opacity-80 backdrop-blur-sm">
-        <h1 className="sm:text-2xl font-bold mb-6 text-center text-indigo-800">
-          Interest Calculator
-        </h1>
+        <h1 className="sm:text-2xl font-bold mb-6 text-center text-indigo-800">Interest Calculator</h1>
 
         <Principal value={principal} onChange={setPrincipal} />
         <Rate value={rate} onChange={setRate} />
-        <StartDate value={startDate} onChange={setStartDate} />
-        <EndDate value={endDate} onChange={setEndDate} />
+        <Startdate value={startDate} onChange={setStartDate} />
+        <Enddate value={endDate} onChange={setEndDate} />
 
         <label className="block mt-4 font-medium text-sm sm:text-base text-gray-700">
           Interest Rate Type:
@@ -170,32 +185,26 @@ function App() {
           </button>
         </div>
 
+        {/* Result Section */}
         <div ref={resultRef}>
           {calculatedInterest && (
             <div className="mt-6 p-4 border rounded-md text-sm sm:text-base bg-green-100">
               <p className="font-semibold">
-                Interest: ₹
-                {Number(calculatedInterest.interest).toLocaleString("en-IN")}
+                Interest: ₹{Number(calculatedInterest.interest).toLocaleString("en-IN")}
               </p>
               <p>
-                Total Amount: ₹
-                {Number(calculatedInterest.total).toLocaleString("en-IN")}
+                Total Amount: ₹{Number(calculatedInterest.total).toLocaleString("en-IN")}
               </p>
               <p>Duration: {calculatedInterest.duration}</p>
             </div>
           )}
 
-          {error && (
-            <p className="mt-4 text-red-500 text-sm sm:text-base font-medium">
-              {error}
-            </p>
-          )}
+          {error && <p className="mt-4 text-red-500 text-sm sm:text-base font-medium">{error}</p>}
         </div>
       </div>
 
       <footer className="fixed bottom-0 left-0 w-full bg-gray-800 text-gray-100 border-t border-gray-700 py-1.5 px-4 text-center text-[10px] sm:text-xs rounded-t-md shadow-md">
-        © {new Date().getFullYear()} Interest Calculator — Developed by Deeraj
-        Kumar Meka. All Rights Reserved.
+        © {new Date().getFullYear()} Interest Calculator — Developed by Deeraj Kumar Meka. All Rights Reserved.
       </footer>
     </div>
   );
